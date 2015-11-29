@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+
+body {
+  font: 10px sans-serif;
+}
+
+.bar rect {
+  fill: steelblue;
+  shape-rendering: crispEdges;
+}
+
+.bar text {
+  fill: #fff;
+}
+
+.axis path, .axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
+</style>
+<body>
+<script type="text/javascript" src="d3.v3.js"></script>
+<script>
+
+// Generate a Bates distribution of 10 random variables.
+
+d3.csv("apps.csv", function(values) {
+		
+		console.log(values);
+		
+		// A formatter for counts.
+		var formatCount = d3.format(",.0f");
+
+		var margin = {top: 10, right: 30, bottom: 300, left: 30},
+			width = 120000 - margin.left - margin.right,
+			height = 1800 - margin.top - margin.bottom;
+
+		var x = d3.scale.ordinal()
+			.domain(values.map(function(d){ return d.app;}) )
+			.rangePoints([0, width]);
+
+		// Generate a histogram using twenty uniformly-spaced bins.
+// 		var data = d3.layout.histogram()
+// 			.bins(x.ticks(20))
+// 			(values);
+			
+
+		var y = d3.scale.linear()
+			.domain([0.1, d3.max(values, function(d) { return d.result; })])
+			.range([height, 0]);
+
+		var xAxis = d3.svg.axis()
+			.scale(x)
+			.orient("bottom")
+			.ticks(100);
+		var yAxis = d3.svg.axis()
+			.scale(y)
+			.orient("left")
+			.innerTickSize(-width)
+   			.outerTickSize(0)
+    		.tickPadding(10)
+			.ticks(10);
+
+		var svg = d3.select("body").append("svg")
+			.attr("width", width + margin.left + margin.right)
+			.attr("height", height + margin.top + margin.bottom)
+		  .append("g")
+			.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+		var bar = svg.selectAll(".bar")
+			.data(values)
+		  	.enter().append("g")
+			.attr("class", "bar")
+			.attr("transform", function(d) { return "translate(" + x(d.app) + "," + y(d.result) + ")"; });
+
+		bar.append("rect")
+			.attr("x", 1)
+			.attr("width", 20)
+			.attr("height", function(d) { return height - y(d.result); });
+// 			.style("fill", function(d) 
+// 					   {
+// 							if (d.result >= 0.5)
+// 								return "red";
+// 							else if(d.result >= 0.4)
+// 								return "orange";
+// 							else if(d.result >= 0.3)
+// 								return "purple";
+// 							else if(d.result >= 0.2)
+// 								return "brown";
+// 							else return "green";
+// 					   });
+
+// 		bar.append("text")
+// 			.attr("dy", ".75em")
+// 			.attr("y", 6)
+// 			.attr("x", 5)
+// 			.attr("text-anchor", "middle")
+// 			.text(function(d) { return formatCount(d.result); });
+
+		//Create circles
+		svg.append("g")
+		   .attr("id", "circles")
+		   .selectAll("circle")
+		   .data(values)
+		   .enter()
+		   .append("circle")
+		   .transition()
+		   .duration(3000)
+		   .attr("cx", function(d) 
+		   {
+				return x(d.app) + 10;
+		   })
+		   .attr("cy", function(d) 
+		   {
+				return y(d.result);
+		   })
+		   .attr("r", 2.25)
+		   .attr("fill", "black");
+			
+
+		svg.append("g")
+			.attr("class", "x axis")
+			.attr("transform", "translate(0," + height + ")")
+			.call(xAxis)
+			.selectAll("text")  
+			.style("text-anchor", "end")
+			.attr("dx", "-.8em")
+			.attr("dy", ".15em")
+			.attr("transform", function(d) {
+				return "rotate(-65)" 
+			});
+		svg.append("g")
+			.attr("class", "y axis")
+			.attr("transform", "translate(" + height - 10 + ",0)")
+			.call(yAxis);
+			
+});
+</script>
